@@ -141,7 +141,7 @@
         then(server => {
             log('GATT server connected, getting service...');
 
-            return server.getPrimaryService(0xFFE0);
+            return server.getPrimaryService(0x1800);
         }).
         then(service => {
             log('Service found, getting characteristic...');
