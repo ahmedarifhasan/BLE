@@ -115,7 +115,7 @@
 
         return navigator.bluetooth.requestDevice({
             filters: [{
-                services: [0x1800]
+                acceptAllDevices : true
             }],
         }).
         then(device => {
