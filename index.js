@@ -4,17 +4,17 @@ const bodyParser = require('body-parser')
 
 app.use(bodyParser.urlencoded({extended:true}));
 
-app.set('view engine','ejs');
+// app.set('view engine','ejs');
 
 
 
 app.get('/',(req,res)=>{
-    res.render('home')
+    res.redirect('home.html')
 })
 
 app.post('/',(req,res)=>{
     console.log(req.body.input);
-    res.redirect('/')
+    res.redirect('/home.html')
 })
 
 
