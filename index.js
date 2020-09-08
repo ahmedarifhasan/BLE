@@ -9,12 +9,12 @@ app.use(bodyParser.urlencoded({extended:true}));
 
 
 app.get('/',(req,res)=>{
-    res.redirect('home.html')
+    res.redirect('./index.html')
 })
 
 app.post('/',(req,res)=>{
     console.log(req.body.input);
-    res.redirect('/home.html')
+    res.redirect('./index.html')
 })
 
 
