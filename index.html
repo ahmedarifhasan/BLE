@@ -146,7 +146,7 @@
         then(service => {
             log('Service found, getting characteristic...');
 
-            return service.getCharacteristic(0xFFE1);
+            return service.getCharacteristic(0x1800);
         }).
         then(characteristic => {
             log('Characteristic found');
