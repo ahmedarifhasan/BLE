@@ -3,25 +3,18 @@
 
 <head>
     <style>
-        #terminal div {
-            color: gray;
+        * {
+            font-family: monospace;
         }
 
         #terminal div.out {
-            color: red;
+            color: rgb(255, 0, 0);
         }
 
         #terminal div.in {
-            color: blue;
+            color: rgb(0, 0, 255);
         }
     </style>
-
-
-
-
-
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> BLE SCANNER </title>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
         integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous">
@@ -31,71 +24,72 @@
     </script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
         integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+
 </head>
 
-<body>
 
 
-
-    <button id="connect" type="button">Connect</button>
-
-    <button id="disconnect" type="button">Disconnect</button>
-
-    <div id="terminal">
-        <div>Device connection...</div>
-        <div class="out">Outcoming message</div>
-        <div class="in">Incoming message</div>
-    </div>
-
-    <form id="send-form">
-        <input id="input" type="text">
-        <button type="submit">Send</button>
-    </form>
-
-
-    <div class="container" style="margin-top: 10%;">
-        <div class="col">
-            <div class="row">
-                <h1 style="margin-left: 230px;"> Click to Connect to the BLE device</h1>
-                <button class="btn btn-block btn-dark btn-lg" id="connct">
-                    Connect
+<body style="background-color: rgb(182, 207, 199);">
+    <div style="margin-top: 10%;">
+        <div style="display: inline; text-align:center;">
+            <p style="display:block;">
+                <button class="btn btn-warning btn-lg" style="border-radius: 14px;" id="connect" type="button">
+                    <h4> <b>Connect to the BLE device </b></h4>
                 </button>
-            </div>
-            <hr>
-            <br><br>
-
-            <div class="row">
-
-                <form action="/home.html" method="post">
-                    <h1>Input 1</h1>
-                    <input type="text" value="1" name="input">
-                    <button type="submit" class="btn btn-info btn-lg">Submit</button>
+                <hr style="width:40%; border-top: 2px solid rgb(0, 0, 0);">
+                <form id="send-form">
+                    <div class="form-group">
+                        <h4 class="text-primary"> Type your Message below </h4>
+                        <input id="input" style="border: 0ch; text-align: center; height: 35px; width: 200px; margin-bottom: 10px; border-radius: 12px;" type="text">
+                        <br>
+                        <button class="btn btn-success btn-lg" type="submit" id="bt" style="color: black;"> <b> Send </b> </button>
+                    </div>
                 </form>
+            </p>
 
-                <form action="/home.html" method="post" style="margin-left: 470px;">
-                    <h1>Input 2</h1>
-                    <input type="text" value="2" name="input">
-                    <button type="submit" class="btn btn-danger btn-lg">Submit</button>
-                </form>
+            <div id="terminal" style="overflow-y: scroll;">
+                <div class="out">
+                    <h5> <b>Outgoing message</b> </h5>
+                </div>
+                <div class="in">
+                    <h5> <b>Incoming message</b> </h5>
+                </div>
             </div>
+        </div>
+
+    </div>
 
 
 
 </body>
 
 
-
-
 <script defer>
-   let id = (val) => {
+ let id = (val) => {
     return document.getElementById(val);
 }
+
+
+let isConnected = false
+let bt = id('bt')
+bt.addEventListener('click',()=>{
+    if(!isConnected){
+        alert("Device Not Connected")
+    }
+})
 
 let connectButton = document.getElementById('connect');
 let disconnectButton = document.getElementById('disconnect');
 let terminalContainer = document.getElementById('terminal');
 let sendForm = document.getElementById('send-form');
 let inputField = document.getElementById('input');
+
+sendForm.addEventListener('submit', function (event) {
+    event.preventDefault(); // Prevent form sending
+    send(inputField.value); // Send text field contents
+    inputField.value = ''; // Zero text field
+    inputField.focus(); // Focus on text field
+});
 
 connectButton.addEventListener('click', () => {
     connect();
@@ -109,7 +103,7 @@ function send(data) {
         return;
     }
 
-    data += '\n';
+    // data += '\n';
 
     if (data.length > 20) {
         let chunks = data.match(/(.|[\r\n]){1,20}/g);
@@ -167,12 +161,14 @@ function connect() {
     catch(error => log(error));
 }
 
+let UUID = '0000ffe0-0000-1000-8000-00805f9b34fb'
+
 function requestBluetoothDevice() {
-    log('Requesting bluetooth device...');
+    log(`Requesting bluetooth device with UUID : ${UUID}` );
 
     return navigator.bluetooth.requestDevice({
         filters: [{
-            services: ['0000ffe0-0000-1000-8000-00805f9b34fb']
+            services: [UUID]
         }],
     }).
     then(device => {
@@ -220,6 +216,7 @@ function connectDeviceAndCacheCharacteristic(device) {
         return service.getCharacteristic(0xFFE1);
     }).
     then(characteristic => {
+        isConnected = true
         log('Characteristic found');
         characteristicCache = characteristic;
 
@@ -245,6 +242,12 @@ function startNotifications(characteristic) {
 function log(data, type = '') {
     terminalContainer.insertAdjacentHTML('beforeend',
         '<div' + (type ? ' class="' + type + '"' : '') + '>' + data + '</div>');
+}
+
+// Data receiving
+function handleCharacteristicValueChanged(event) {
+    let value = new TextDecoder().decode(event.target.value);
+    log(value, 'in');
 }
 </script>
 
